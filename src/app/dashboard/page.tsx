@@ -36,59 +36,68 @@ export default async function DashboardPage() {
   return (
     <>
       <Navbar loggedIn />
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8">
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-brand-600">Bienvenue</p>
-            <h1 className="text-2xl font-bold text-brand-950">Ta leçon du jour</h1>
+            <h1 className="text-2xl font-bold text-brand-950 lg:text-3xl">Ta leçon du jour</h1>
           </div>
           <StreakBadge days={streak} size="lg" />
         </div>
 
-        <ProgressBar
-          value={completedCount}
-          total={lessons.length}
-          label="Progression du parcours"
-        />
+        <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
+          <div className="lg:col-span-2">
+            {nextLesson ? (
+              <Card className="flex flex-col gap-4 lg:p-8">
+                <div>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-brand-500">
+                    Leçon {lessons.indexOf(nextLesson) + 1} / {lessons.length}
+                  </span>
+                  <h2 className="mt-1 text-xl font-bold text-brand-950 lg:text-2xl">
+                    {nextLesson.titre}
+                  </h2>
+                </div>
+                <p className="text-brand-800">{nextLesson.mise_en_situation}</p>
+                <LinkButton href={`/lesson/${nextLesson.id}`} className="self-start">
+                  Commencer la leçon (5 min)
+                </LinkButton>
+              </Card>
+            ) : allDone ? (
+              <Card className="text-center lg:p-8">
+                <h2 className="mb-2 text-xl font-bold text-brand-950">
+                  Bravo, tu as terminé toutes les leçons disponibles !
+                </h2>
+                <p className="mb-4 text-brand-700">
+                  De nouvelles leçons arrivent bientôt. En attendant, jette un œil à ta
+                  progression.
+                </p>
+                <LinkButton href="/progress" variant="secondary">
+                  Voir ma progression
+                </LinkButton>
+              </Card>
+            ) : (
+              <Card className="text-center text-brand-700">
+                Aucune leçon disponible pour le moment.
+              </Card>
+            )}
+          </div>
 
-        {nextLesson ? (
-          <Card className="flex flex-col gap-4">
-            <div>
-              <span className="text-xs font-semibold uppercase tracking-wide text-brand-500">
-                Leçon {lessons.indexOf(nextLesson) + 1} / {lessons.length}
-              </span>
-              <h2 className="mt-1 text-xl font-bold text-brand-950">{nextLesson.titre}</h2>
-            </div>
-            <p className="text-brand-800">{nextLesson.mise_en_situation}</p>
-            <LinkButton href={`/lesson/${nextLesson.id}`} className="self-start">
-              Commencer la leçon (5 min)
-            </LinkButton>
-          </Card>
-        ) : allDone ? (
-          <Card className="text-center">
-            <h2 className="mb-2 text-xl font-bold text-brand-950">
-              Bravo, tu as terminé toutes les leçons disponibles !
-            </h2>
-            <p className="mb-4 text-brand-700">
-              De nouvelles leçons arrivent bientôt. En attendant, jette un œil à ta
-              progression.
-            </p>
-            <LinkButton href="/progress" variant="secondary">
-              Voir ma progression
-            </LinkButton>
-          </Card>
-        ) : (
-          <Card className="text-center text-brand-700">
-            Aucune leçon disponible pour le moment.
-          </Card>
-        )}
-
-        <Link
-          href="/progress"
-          className="text-center text-sm font-medium text-brand-700 underline underline-offset-2"
-        >
-          Voir l&apos;historique de mes leçons
-        </Link>
+          <div className="flex flex-col gap-4">
+            <Card>
+              <ProgressBar
+                value={completedCount}
+                total={lessons.length}
+                label="Progression du parcours"
+              />
+            </Card>
+            <Link
+              href="/lessons"
+              className="rounded-xl2 border border-sand-200 bg-white px-5 py-4 text-center text-sm font-semibold text-brand-800 shadow-card transition-colors hover:bg-sand-50"
+            >
+              Voir toutes mes leçons
+            </Link>
+          </div>
+        </div>
       </main>
     </>
   );

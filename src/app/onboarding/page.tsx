@@ -112,6 +112,7 @@ export default function OnboardingPage() {
   }
 
   return (
+    <div className="flex flex-1 flex-col bg-gradient-to-b from-brand-50/60 to-sand-50">
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-12">
       <StepDots step={step} />
       <Card>
@@ -222,5 +223,6 @@ export default function OnboardingPage() {
         )}
       </Card>
     </main>
+    </div>
   );
 }
