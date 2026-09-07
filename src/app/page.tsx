@@ -1,39 +1,39 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Navbar } from "@/components/Navbar";
 import { LinkButton } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
-function LessonPreview() {
+interface PreviewLesson {
+  id: string;
+  titre: string;
+  mise_en_situation: string;
+  consigne: string;
+}
+
+function LessonPreview({
+  lesson,
+  href,
+}: {
+  lesson: PreviewLesson;
+  href: string;
+}) {
   return (
-    <Card className="w-full max-w-md shrink-0 lg:p-7">
-      <span className="text-xs font-semibold uppercase tracking-wide text-brand-500">
-        Leçon du jour
-      </span>
-      <h3 className="mt-1 text-lg font-bold text-brand-950">
-        Rédiger un compte-rendu de réunion en 2 minutes
-      </h3>
-      <p className="mt-2 text-sm text-brand-700">
-        Écris le prompt que tu enverrais à Claude pour transformer tes notes en
-        compte-rendu structuré.
-      </p>
-      <div className="mt-4 rounded-lg border border-sand-200 bg-sand-50 px-3 py-2.5 text-sm text-brand-600">
-        Résume-moi ces notes de réunion avec une structure claire...
-      </div>
-      <div className="mt-4 flex items-center justify-between rounded-lg bg-brand-50 px-3 py-2.5">
-        <span className="text-xs font-semibold uppercase tracking-wide text-brand-600">
-          Feedback de Claude
+    <Link href={href} className="group block w-full max-w-md shrink-0">
+      <Card className="transition-shadow group-hover:shadow-md lg:p-7">
+        <span className="text-xs font-semibold uppercase tracking-wide text-brand-500">
+          Leçon du jour
         </span>
-        <div className="flex items-center gap-1">
-          {[1, 2, 3, 4, 5].map((n) => (
-            <span
-              key={n}
-              className={`h-2.5 w-2.5 rounded-full ${n <= 4 ? "bg-brand-600" : "bg-brand-100"}`}
-            />
-          ))}
-          <span className="ml-1 text-xs font-semibold text-brand-800">4/5</span>
+        <h3 className="mt-1 text-lg font-bold text-brand-950">{lesson.titre}</h3>
+        <p className="mt-2 text-sm text-brand-700">{lesson.consigne}</p>
+        <div className="mt-4 rounded-lg border border-sand-200 bg-sand-50 px-3 py-2.5 text-sm text-brand-600">
+          {lesson.mise_en_situation}
         </div>
-      </div>
-    </Card>
+        <p className="mt-4 text-sm font-semibold text-brand-700 group-hover:text-brand-900">
+          Essayer cette leçon →
+        </p>
+      </Card>
+    </Link>
   );
 }
 
@@ -42,6 +42,17 @@ export default async function Home() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const { data: previewLesson } = await supabase
+    .from("lessons")
+    .select("id, titre, mise_en_situation, consigne")
+    .eq("track", "pro")
+    .is("metier", null)
+    .order("ordre", { ascending: true })
+    .limit(1)
+    .maybeSingle<PreviewLesson>();
+
+  const ctaHref = user ? "/dashboard" : "/signup";
 
   return (
     <>
@@ -60,12 +71,14 @@ export default async function Home() {
               personnalisé. Pas de jargon, pas de formation interminable : juste une
               leçon par jour, pensée pour ton métier ou ta vie de tous les jours.
             </p>
-            <LinkButton href={user ? "/dashboard" : "/signup"} className="mt-2">
+            <LinkButton href={ctaHref} className="mt-2">
               {user ? "Reprendre ma leçon" : "Commencer gratuitement"}
             </LinkButton>
           </div>
           <div className="flex justify-center lg:justify-end">
-            <LessonPreview />
+            {previewLesson ? (
+              <LessonPreview lesson={previewLesson} href={ctaHref} />
+            ) : null}
           </div>
         </section>
 
