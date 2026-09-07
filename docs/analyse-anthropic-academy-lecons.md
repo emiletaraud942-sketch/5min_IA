@@ -54,6 +54,17 @@ Le troisième grand bloc de leur catalogue (API, Claude Code, MCP, agents, dépl
 
 ---
 
+## BLOC 4 — Issu d'autres ressources (Elements of AI, chaînes YouTube grand public)
+
+### 4.1 — Pourquoi l'IA peut dire des choses fausses avec assurance
+Inspiré des modules "limites et biais" d'Elements of AI et du style de vulgarisation de chaînes comme Défend Intelligence.
+**Leçon proposée** : "Pourquoi l'IA ment parfois sans le savoir" — explique en langage simple le principe de l'hallucination (l'IA complète un texte de façon plausible, pas toujours vraie), avec un exemple concret où l'utilisateur doit repérer l'erreur. Complète directement le bloc "Discernement" (1.4) avec un angle différent : comprendre la cause plutôt que juste détecter l'erreur.
+
+### 4.2 — L'IA a des biais parce qu'elle a appris sur des données humaines
+**Leçon proposée** : "Ton IA a des préjugés — voici pourquoi" — mise en situation où une réponse de l'IA reflète un biais courant (ex. stéréotype de genre dans une description de métier), l'utilisateur doit le repérer et reformuler sa demande pour l'éviter. Bonne leçon de sensibilisation, complémentaire au bloc Diligence (1.6).
+
+---
+
 ## Le constat le plus important de cette analyse
 
 Tes 3 leçons actuelles couvrent uniquement l'étape "Description" (bien formuler sa demande) du framework en 4 étapes. Il te manque tout le volet **Discernement** (savoir juger une réponse) et **Diligence** (vérifier, rester responsable) — deux compétences aussi importantes que "bien écrire un prompt", et qui n'existent dans aucune de tes leçons actuelles. Je recommande de les intégrer dès le prochain lot de leçons (idées 1.4 et 1.6 ci-dessus) : c'est exactement le genre de trou qu'un concurrent pourrait combler avant toi, et c'est aussi ce qui rendrait ton produit plus complet qu'un simple "générateur de prompts".
