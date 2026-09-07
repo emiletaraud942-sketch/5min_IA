@@ -6,6 +6,7 @@ import { useState, type FormEvent } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 
 function Logo() {
   return (
@@ -59,6 +60,7 @@ export default function SignupPage() {
 
   if (checkEmail) {
     return (
+      <div className="flex flex-1 flex-col bg-gradient-to-b from-brand-50/60 to-sand-50">
       <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center px-4 py-16 text-center">
         <Logo />
         <h1 className="mb-2 text-2xl font-bold text-brand-950">Vérifie ta boîte mail</h1>
@@ -67,10 +69,12 @@ export default function SignupPage() {
           dessus pour activer ton compte, puis reviens te connecter.
         </p>
       </main>
+      </div>
     );
   }
 
   return (
+    <div className="flex flex-1 flex-col bg-gradient-to-b from-brand-50/60 to-sand-50">
     <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center px-4 py-16">
       <Logo />
       <h1 className="mb-1 text-2xl font-bold text-brand-950">Crée ton compte</h1>
@@ -78,6 +82,12 @@ export default function SignupPage() {
         Moins de 5 minutes par jour pour ne plus être largué par l&apos;IA.
       </p>
       <Card>
+        <GoogleSignInButton label="S'inscrire avec Google" />
+        <div className="my-5 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-brand-400">
+          <span className="h-px flex-1 bg-sand-200" />
+          ou
+          <span className="h-px flex-1 bg-sand-200" />
+        </div>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <label className="flex flex-col gap-1 text-sm font-medium text-brand-900">
             Email
@@ -115,5 +125,6 @@ export default function SignupPage() {
         </Link>
       </p>
     </main>
+    </div>
   );
 }

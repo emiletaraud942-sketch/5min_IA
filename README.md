@@ -28,6 +28,21 @@ V1 : une leçon par jour, un prompt à écrire, un feedback de Claude, un streak
    utilisateur doit cliquer sur le lien reçu par email avant de pouvoir se
    connecter — géré par `/auth/callback`).
 
+### Activer la connexion Google (optionnel mais recommandé)
+
+1. Dans [Google Cloud Console](https://console.cloud.google.com/apis/credentials),
+   crée des identifiants **OAuth 2.0 Client ID** (type "Web application").
+2. Dans **Authorized redirect URIs**, ajoute l'URL de callback de ton projet
+   Supabase : `https://<ton-projet>.supabase.co/auth/v1/callback` (visible dans
+   Supabase sous **Authentication > Providers > Google** une fois l'écran
+   ouvert).
+3. Copie le **Client ID** et le **Client Secret** générés par Google.
+4. Dans Supabase, **Authentication > Providers > Google** : active le
+   provider et colle-y le Client ID / Client Secret.
+5. Rien à faire côté code : le bouton "Continuer avec Google" (login et
+   inscription) appelle `supabase.auth.signInWithOAuth` et repasse par
+   `/auth/callback`, exactement comme la confirmation email.
+
 ## 2. Configurer l'API Anthropic
 
 1. Crée une clé sur [console.anthropic.com](https://console.anthropic.com/settings/keys).
@@ -82,8 +97,20 @@ Voir `supabase/schema.sql` pour le détail complet (types, contraintes, RLS).
 - **Boucle de leçon quotidienne** : mise en situation → l'utilisateur écrit
   son prompt → évaluation Claude (note /5 + feedback) → un réessai possible →
   validation → mise à jour du streak.
+- **Toutes les leçons** (`/lessons`) : liste complète des leçons du parcours,
+  chacune cliquable indépendamment de l'ordre pour la faire ou la refaire.
 - **Progression** : streak actuel, leçons terminées / total, historique des
   tentatives. Pas de classement public en V1.
+
+## Installer l'app (PWA)
+
+Le site est installable comme une application depuis un navigateur mobile ou
+desktop (manifest + icônes fournis) :
+
+- **iPhone/Safari** : bouton Partager → "Sur l'écran d'accueil".
+- **Android/Chrome** : menu ⋮ → "Installer l'application" (ou bandeau
+  automatique proposé par Chrome).
+- **Desktop/Chrome** : icône d'installation dans la barre d'adresse.
 
 ## Ce qui n'est pas dans cette V1
 
