@@ -61,11 +61,12 @@ export async function updateSession(request: NextRequest) {
   if (user && pathname !== "/onboarding" && !isPublicPath(pathname)) {
     const { data: profile } = await supabase
       .from("users")
-      .select("onboarding_complete")
+      .select("onboarding_complete, is_admin")
       .eq("id", user.id)
       .maybeSingle();
 
-    if (profile && !profile.onboarding_complete) {
+    // Admins navigate freely, onboarding or not.
+    if (profile && !profile.onboarding_complete && !profile.is_admin) {
       const url = request.nextUrl.clone();
       url.pathname = "/onboarding";
       return NextResponse.redirect(url);

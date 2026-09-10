@@ -23,7 +23,7 @@ export default async function ProgressPage() {
   if (!user) redirect("/login");
 
   const profile = await getProfile(supabase, user.id);
-  if (!profile || !profile.onboarding_complete) redirect("/onboarding");
+  if (!profile || (!profile.onboarding_complete && !profile.is_admin)) redirect("/onboarding");
 
   const [lessons, progressMap, completionDates, attemptsRes] = await Promise.all([
     getTrackLessons(supabase, profile),

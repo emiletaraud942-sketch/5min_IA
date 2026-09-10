@@ -14,6 +14,7 @@ export interface UserProfile {
   niveau_depart: NiveauDepart | null;
   objectif_principal: string | null;
   onboarding_complete: boolean;
+  is_admin: boolean;
   created_at: string;
 }
 
