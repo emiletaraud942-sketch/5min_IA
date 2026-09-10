@@ -32,9 +32,11 @@ function ScoreDots({ score }: { score: number }) {
 export function LessonForm({
   lesson,
   alreadyCompleted,
+  unlimitedAttempts = false,
 }: {
   lesson: Lesson;
   alreadyCompleted: boolean;
+  unlimitedAttempts?: boolean;
 }) {
   const router = useRouter();
   const [prompt, setPrompt] = useState("");
@@ -106,7 +108,7 @@ export function LessonForm({
     }
   }
 
-  if (alreadyCompleted && !validated) {
+  if (alreadyCompleted && !unlimitedAttempts && !validated) {
     return (
       <Card className="text-center">
         <h1 className="mb-2 text-xl font-bold text-brand-950">
@@ -216,7 +218,7 @@ export function LessonForm({
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
           <div className="flex flex-wrap gap-3">
-            {attemptCount < MAX_ATTEMPTS && (
+            {(unlimitedAttempts || attemptCount < MAX_ATTEMPTS) && (
               <Button variant="outline" onClick={handleRetry}>
                 Réessayer
               </Button>

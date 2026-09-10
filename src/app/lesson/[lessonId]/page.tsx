@@ -18,7 +18,7 @@ export default async function LessonPage({
   if (!user) redirect("/login");
 
   const profile = await getProfile(supabase, user.id);
-  if (!profile || !profile.onboarding_complete) redirect("/onboarding");
+  if (!profile || (!profile.onboarding_complete && !profile.is_admin)) redirect("/onboarding");
 
   const { data: lesson } = await supabase
     .from("lessons")
@@ -29,7 +29,8 @@ export default async function LessonPage({
   if (!lesson) notFound();
 
   const isForUser =
-    lesson.track === profile.profil && (lesson.metier === null || lesson.metier === profile.metier);
+    profile.is_admin ||
+    (lesson.track === profile.profil && (lesson.metier === null || lesson.metier === profile.metier));
 
   if (!isForUser) redirect("/dashboard");
 
@@ -44,7 +45,11 @@ export default async function LessonPage({
     <>
       <Navbar loggedIn />
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-        <LessonForm lesson={lesson} alreadyCompleted={progress?.statut === "termine"} />
+        <LessonForm
+          lesson={lesson}
+          alreadyCompleted={progress?.statut === "termine"}
+          unlimitedAttempts={profile.is_admin}
+        />
       </main>
     </>
   );

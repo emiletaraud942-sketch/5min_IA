@@ -17,6 +17,7 @@ create table public.users (
   niveau_depart niveau_enum,
   objectif_principal text,
   onboarding_complete boolean not null default false,
+  is_admin boolean not null default false,
   created_at timestamptz not null default now(),
   constraint metier_only_for_pro check (
     (profil = 'pro') or (profil is distinct from 'pro' and metier is null)

@@ -21,6 +21,9 @@ V1 : une leçon par jour, un prompt à écrire, un feedback de Claude, un streak
      et "Diligence", voir `docs/analyse-anthropic-academy-lecons.md`)
    - `supabase/seed_lot3.sql` (2 leçons supplémentaires — hallucinations et
      biais, complément aux étapes "Discernement" et "Diligence")
+   - `supabase/migration_admin.sql` (ajoute le rôle admin — accès illimité à
+     toutes les leçons des deux parcours, sans passer par l'onboarding —
+     attribué par défaut à `emiletaraud942@gmail.com`, à adapter si besoin)
 3. Dans **Project Settings > API**, récupère `Project URL` et la clé `anon public`.
 4. Optionnel mais recommandé pour un test rapide entre 5 et 10 personnes : dans
    **Authentication > Providers > Email**, désactive « Confirm email » pour que les
