@@ -34,6 +34,9 @@ create table public.lessons (
   mise_en_situation text not null,
   consigne text not null,
   criteres_evaluation text not null,
+  -- Themed folder a lesson belongs to (e.g. 'agent_pro'). null = regular
+  -- daily lesson, no folder, no quota. See migration_premium.sql.
+  groupe text,
   created_at timestamptz not null default now(),
   unique (track, metier, ordre)
 );
@@ -63,6 +66,27 @@ create table public.attempts (
 
 create index attempts_user_lesson_idx on public.attempts (user_id, lesson_id, date desc);
 
+-- One row per (user, lesson, day) the user opened a "groupe" lesson. Used
+-- to count how many distinct special lessons were started today.
+create table public.lesson_opens (
+  user_id uuid not null references public.users (id) on delete cascade,
+  lesson_id uuid not null references public.lessons (id) on delete cascade,
+  opened_on date not null default current_date,
+  created_at timestamptz not null default now(),
+  primary key (user_id, lesson_id, opened_on)
+);
+
+-- One row per (user, lesson) once paid for — unlocks it permanently, it
+-- never counts against the daily quota again. Only ever written by the
+-- Stripe webhook using the service role key (see lib/supabase/admin.ts).
+create table public.lesson_unlocks (
+  user_id uuid not null references public.users (id) on delete cascade,
+  lesson_id uuid not null references public.lessons (id) on delete cascade,
+  stripe_session_id text,
+  created_at timestamptz not null default now(),
+  primary key (user_id, lesson_id)
+);
+
 -- Auto-create the public profile row whenever someone signs up via Supabase Auth.
 create function public.handle_new_user()
 returns trigger
@@ -86,6 +110,8 @@ alter table public.users enable row level security;
 alter table public.lessons enable row level security;
 alter table public.user_progress enable row level security;
 alter table public.attempts enable row level security;
+alter table public.lesson_opens enable row level security;
+alter table public.lesson_unlocks enable row level security;
 
 create policy "users can read own profile"
   on public.users for select
@@ -121,3 +147,18 @@ create policy "users can read own attempts"
 create policy "users can insert own attempts"
   on public.attempts for insert
   with check (auth.uid() = user_id);
+
+create policy "users can read own lesson opens"
+  on public.lesson_opens for select
+  using (auth.uid() = user_id);
+
+create policy "users can insert own lesson opens"
+  on public.lesson_opens for insert
+  with check (auth.uid() = user_id);
+
+create policy "users can read own lesson unlocks"
+  on public.lesson_unlocks for select
+  using (auth.uid() = user_id);
+
+-- No insert policy for lesson_unlocks: only the Stripe webhook (service
+-- role key, bypasses RLS) writes rows here.

@@ -27,7 +27,22 @@ export interface Lesson {
   mise_en_situation: string;
   consigne: string;
   criteres_evaluation: string;
+  groupe: string | null;
 }
+
+export const LESSON_GROUPS: Record<string, { title: string; description: string; icon: string }> = {
+  agent_pro: {
+    title: "Construire ton agent IA au travail",
+    description: "Un parcours de 15 leçons pour te monter un vrai assistant personnel au travail.",
+    icon: "🤖",
+  },
+  agent_perso: {
+    title: "Construire ton assistant repas au quotidien",
+    description:
+      "Un parcours de 15 leçons : recettes de dépannage, menus, listes de courses, anti-gaspillage.",
+    icon: "🍽️",
+  },
+};
 
 export interface UserProgress {
   user_id: string;

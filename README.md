@@ -28,9 +28,14 @@ V1 : une leçon par jour, un prompt à écrire, un feedback de Claude, un streak
      Particulier : "Construire ton assistant repas au quotidien" — recettes
      de dépannage quand le frigo est vide, menus, listes de courses,
      batch cooking, anti-gaspillage)
-   - `supabase/migration_admin.sql` (ajoute le rôle admin — accès illimité à
-     toutes les leçons des deux parcours, sans passer par l'onboarding —
-     attribué par défaut à `emiletaraud942@gmail.com`, à adapter si besoin)
+   - `supabase/migration_admin.sql` (ajoute le rôle admin — navigation libre
+     sans passer par l'onboarding, plus un sélecteur de parcours Pro/Particulier
+     sur le dashboard — attribué par défaut à `emiletaraud942@gmail.com`, à
+     adapter si besoin)
+   - `supabase/migration_premium.sql` (regroupe les leçons "agent" (lots 4 et
+     5) dans un dossier à part sur `/lessons`, plafonné à 2 leçons gratuites
+     par jour — au-delà, 1€ par leçon via Stripe, voir section dédiée
+     ci-dessous)
 3. Dans **Project Settings > API**, récupère `Project URL` et la clé `anon public`.
 4. Optionnel mais recommandé pour un test rapide entre 5 et 10 personnes : dans
    **Authentication > Providers > Email**, désactive « Confirm email » pour que les
@@ -56,10 +61,33 @@ V1 : une leçon par jour, un prompt à écrire, un feedback de Claude, un streak
 ## 2. Configurer l'API Anthropic
 
 1. Crée une clé sur [console.anthropic.com](https://console.anthropic.com/settings/keys).
-2. C'est la seule API externe utilisée par le produit : elle évalue le prompt
-   soumis par l'utilisateur et renvoie une note sur 5 + un feedback structuré.
+2. C'est la seule API externe utilisée pour le produit pédagogique : elle
+   évalue le prompt soumis par l'utilisateur et renvoie une note sur 5 + un
+   feedback structuré.
 
-## 3. Variables d'environnement
+## 3. Configurer Stripe (leçons spéciales payantes)
+
+Uniquement nécessaire si tu veux que le bouton "Débloquer pour 1€" des
+leçons spéciales fonctionne réellement (sinon il affichera une erreur, le
+reste du site n'est pas affecté).
+
+1. Crée un compte sur [dashboard.stripe.com](https://dashboard.stripe.com)
+   (le mode test suffit pour développer/tester).
+2. Dans **Développeurs > Clés API**, récupère la **clé secrète**
+   (`sk_test_...` ou `sk_live_...` en production) → `STRIPE_SECRET_KEY`.
+3. Dans **Développeurs > Webhooks**, crée un endpoint pointant vers
+   `https://<ton-domaine>/api/stripe/webhook`, écoutant l'événement
+   `checkout.session.completed`. Copie le **signing secret** (`whsec_...`)
+   → `STRIPE_WEBHOOK_SECRET`.
+4. Dans Supabase, **Project Settings > API**, récupère la clé
+   **`service_role`** (⚠️ ne jamais l'exposer côté client, elle contourne
+   toutes les règles de sécurité) → `SUPABASE_SERVICE_ROLE_KEY`. Elle sert
+   uniquement au webhook Stripe pour enregistrer un déblocage de leçon, en
+   dehors de toute session utilisateur.
+5. En local, teste avec le [Stripe CLI](https://stripe.com/docs/stripe-cli) :
+   `stripe listen --forward-to localhost:3000/api/stripe/webhook`.
+
+## 4. Variables d'environnement
 
 Copie `.env.example` vers `.env.local` et renseigne :
 
@@ -68,9 +96,14 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 ANTHROPIC_API_KEY=
 ANTHROPIC_MODEL=claude-sonnet-5   # optionnel
+
+# Optionnel — uniquement pour le paiement des leçons spéciales
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+SUPABASE_SERVICE_ROLE_KEY=
 ```
 
-## 4. Lancer en local
+## 5. Lancer en local
 
 ```bash
 npm install
@@ -79,7 +112,7 @@ npm run dev
 
 L'app tourne sur http://localhost:3000.
 
-## 5. Déployer sur Vercel
+## 6. Déployer sur Vercel
 
 1. Importe le repo dans Vercel.
 2. Renseigne les mêmes variables d'environnement que `.env.local` dans
@@ -109,6 +142,11 @@ Voir `supabase/schema.sql` pour le détail complet (types, contraintes, RLS).
   validation → mise à jour du streak.
 - **Toutes les leçons** (`/lessons`) : liste complète des leçons du parcours,
   chacune cliquable indépendamment de l'ordre pour la faire ou la refaire.
+- **Dossier de leçons spéciales** : les parcours "agent" de 15 leçons (lots
+  4 et 5) apparaissent regroupés à part sur `/lessons`, clairement identifiés
+  comme un parcours spécial. Limités à 2 leçons gratuites par jour — au-delà,
+  débloquer une leçon coûte 1€ (paiement Stripe), et reste ensuite acquise
+  définitivement (elle ne recompte plus jamais dans le quota).
 - **Progression** : streak actuel, leçons terminées / total, historique des
   tentatives. Pas de classement public en V1.
 
@@ -124,5 +162,7 @@ desktop (manifest + icônes fournis) :
 
 ## Ce qui n'est pas dans cette V1
 
-Paiement, tableau de bord entreprise, génération dynamique de leçons,
-fonctionnalités sociales — voir le brief produit.
+Tableau de bord entreprise, génération dynamique de leçons, fonctionnalités
+sociales — voir le brief produit. (Le paiement des leçons spéciales, prévu
+initialement pour une V2, a finalement été ajouté — voir section Stripe
+ci-dessus.)
