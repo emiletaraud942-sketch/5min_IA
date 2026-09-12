@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCompletionDates, getProfile, getProgressMap, getTrackLessons } from "@/lib/data";
 import { computeCurrentStreak } from "@/lib/streak";
 import { Navbar } from "@/components/Navbar";
+import { AdminTrackSwitcher } from "@/components/AdminTrackSwitcher";
 import { Card } from "@/components/ui/Card";
 import { LinkButton } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
@@ -37,6 +38,10 @@ export default async function DashboardPage() {
     <>
       <Navbar loggedIn />
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+        {profile.is_admin && (
+          <AdminTrackSwitcher currentProfil={profile.profil} currentMetier={profile.metier} />
+        )}
+
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-brand-600">Bienvenue</p>

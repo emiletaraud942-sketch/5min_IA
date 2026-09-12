@@ -11,19 +11,10 @@ export async function getProfile(
 
 export async function getTrackLessons(
   supabase: SupabaseClient,
-  profile: Pick<UserProfile, "profil" | "metier" | "is_admin">,
+  profile: Pick<UserProfile, "profil" | "metier">,
 ): Promise<Lesson[]> {
-  // Admins get every lesson across both tracks, unrestricted.
-  if (profile.is_admin) {
-    const { data } = await supabase
-      .from("lessons")
-      .select("*")
-      .order("track", { ascending: true })
-      .order("ordre", { ascending: true });
-
-    return (data ?? []) as Lesson[];
-  }
-
+  // Admins preview the site as a normal user of their currently selected
+  // track (see AdminTrackSwitcher) — no "every lesson at once" bypass here.
   if (!profile.profil) return [];
 
   const { data } = await supabase
