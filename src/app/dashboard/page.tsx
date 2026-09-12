@@ -27,12 +27,16 @@ export default async function DashboardPage() {
     getCompletionDates(supabase, user.id),
   ]);
 
-  const completedCount = lessons.filter(
+  // The daily "lesson of the day" flow only ever picks from the regular
+  // lessons — never from a paid "groupe" folder, so it's never blocked by
+  // a paywall unexpectedly.
+  const dailyLessons = lessons.filter((l) => !l.groupe);
+  const completedCount = dailyLessons.filter(
     (l) => progressMap[l.id]?.statut === "termine",
   ).length;
-  const nextLesson = lessons.find((l) => progressMap[l.id]?.statut !== "termine");
+  const nextLesson = dailyLessons.find((l) => progressMap[l.id]?.statut !== "termine");
   const streak = computeCurrentStreak(completionDates);
-  const allDone = lessons.length > 0 && completedCount === lessons.length;
+  const allDone = dailyLessons.length > 0 && completedCount === dailyLessons.length;
 
   return (
     <>
@@ -56,7 +60,7 @@ export default async function DashboardPage() {
               <Card className="flex flex-col gap-4 lg:p-8">
                 <div>
                   <span className="text-xs font-semibold uppercase tracking-wide text-brand-500">
-                    Leçon {lessons.indexOf(nextLesson) + 1} / {lessons.length}
+                    Leçon {dailyLessons.indexOf(nextLesson) + 1} / {dailyLessons.length}
                   </span>
                   <h2 className="mt-1 text-xl font-bold text-brand-950 lg:text-2xl">
                     {nextLesson.titre}
@@ -91,7 +95,7 @@ export default async function DashboardPage() {
             <Card>
               <ProgressBar
                 value={completedCount}
-                total={lessons.length}
+                total={dailyLessons.length}
                 label="Progression du parcours"
               />
             </Card>
