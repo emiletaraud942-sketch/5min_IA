@@ -21,6 +21,13 @@ V1 : une leçon par jour, un prompt à écrire, un feedback de Claude, un streak
      et "Diligence", voir `docs/analyse-anthropic-academy-lecons.md`)
    - `supabase/seed_lot3.sql` (2 leçons supplémentaires — hallucinations et
      biais, complément aux étapes "Discernement" et "Diligence")
+   - `supabase/seed_lot4.sql` (parcours de 15 leçons pour le parcours Pro :
+     "Construire ton agent IA au travail" — rôle, instructions permanentes,
+     contexte, prompts-modèles, relecture, limites, entretien dans la durée)
+   - `supabase/seed_lot5.sql` (parcours de 15 leçons pour le parcours
+     Particulier : "Construire ton assistant repas au quotidien" — recettes
+     de dépannage quand le frigo est vide, menus, listes de courses,
+     batch cooking, anti-gaspillage)
    - `supabase/migration_admin.sql` (ajoute le rôle admin — accès illimité à
      toutes les leçons des deux parcours, sans passer par l'onboarding —
      attribué par défaut à `emiletaraud942@gmail.com`, à adapter si besoin)
