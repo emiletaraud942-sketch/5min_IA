@@ -2,10 +2,12 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCompletionDates, getProfile, getProgressMap, getTrackLessons } from "@/lib/data";
 import { computeCurrentStreak } from "@/lib/streak";
+import { getCompetences } from "@/lib/competences";
 import { Navbar } from "@/components/Navbar";
 import { Card } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { StreakBadge } from "@/components/ui/StreakBadge";
+import { CompetenceGauge } from "@/components/ui/CompetenceGauge";
 
 interface AttemptRow {
   id: string;
@@ -25,7 +27,7 @@ export default async function ProgressPage() {
   const profile = await getProfile(supabase, user.id);
   if (!profile || (!profile.onboarding_complete && !profile.is_admin)) redirect("/onboarding");
 
-  const [lessons, progressMap, completionDates, attemptsRes] = await Promise.all([
+  const [lessons, progressMap, completionDates, attemptsRes, competences] = await Promise.all([
     getTrackLessons(supabase, profile),
     getProgressMap(supabase, user.id),
     getCompletionDates(supabase, user.id),
@@ -34,6 +36,7 @@ export default async function ProgressPage() {
       .select("id, score, date, lessons(titre)")
       .eq("user_id", user.id)
       .order("date", { ascending: false }),
+    getCompetences(supabase, user.id),
   ]);
 
   const attempts = (attemptsRes.data ?? []) as unknown as AttemptRow[];
@@ -69,6 +72,10 @@ export default async function ProgressPage() {
                 total={lessons.length}
                 label="Ton parcours"
               />
+            </Card>
+
+            <Card>
+              <CompetenceGauge competences={competences} />
             </Card>
           </div>
 

@@ -36,6 +36,12 @@ V1 : une leçon par jour, un prompt à écrire, un feedback de Claude, un streak
      5) dans un dossier à part sur `/lessons`, plafonné à 2 leçons gratuites
      par jour — au-delà, 1€ par leçon via Stripe, voir section dédiée
      ci-dessous)
+   - `supabase/migration_lesson_types.sql` (V1.1 — système de types de leçon :
+     colonnes `type_lecon`/`contenu`/`piliers`, table `competences_utilisateur`
+     pour la jauge de compétences, tag rétroactif des piliers sur toutes les
+     leçons déjà en base)
+   - `supabase/seed_lot6.sql` (un exemple jouable de chacun des 9 nouveaux
+     types de leçon)
 3. Dans **Project Settings > API**, récupère `Project URL` et la clé `anon public`.
 4. Optionnel mais recommandé pour un test rapide entre 5 et 10 personnes : dans
    **Authentication > Providers > Email**, désactive « Confirm email » pour que les
@@ -131,6 +137,9 @@ Voir `supabase/schema.sql` pour le détail complet (types, contraintes, RLS).
 - `user_progress` — statut de complétion par (utilisateur, leçon) + streak.
 - `attempts` — historique de chaque prompt soumis, avec le feedback et la
   note renvoyés par Claude.
+- `competences_utilisateur` — compteurs par pilier (délégation / description
+  / discernement / diligence), incrémentés à chaque première complétion
+  d'une leçon tagguée avec ce pilier. Alimente la jauge sur `/progress`.
 
 ## Parcours produit
 
@@ -148,7 +157,41 @@ Voir `supabase/schema.sql` pour le détail complet (types, contraintes, RLS).
   débloquer une leçon coûte 1€ (paiement Stripe), et reste ensuite acquise
   définitivement (elle ne recompte plus jamais dans le quota).
 - **Progression** : streak actuel, leçons terminées / total, historique des
-  tentatives. Pas de classement public en V1.
+  tentatives, jauge de compétences à 4 axes. Pas de classement public en V1.
+
+## Types de leçon (V1.1)
+
+Le format d'origine ("standard" : mise en situation → prompt écrit par
+l'utilisateur → évaluation Claude) reste le type par défaut et continue de
+fonctionner à l'identique. La colonne `type_lecon` sur `lessons` route vers
+9 formats supplémentaires, chacun avec son propre composant
+(`src/components/lesson-types/` pour les 6 nouveaux composants dédiés, le
+composant `LessonForm` existant est réutilisé et étendu par des props
+optionnelles pour les 3 qui restent proches du format standard) :
+
+| type_lecon | Composant | Principe |
+|---|---|---|
+| `explication_etendue` | `LessonForm` (+ prop) | Bloc dépliable après le feedback, expliquant le principe général |
+| `qu_aurais_tu_fait` | `QuAuraisTuFaitForm` | Choix entre 2-3 actions possibles, révélation immédiate |
+| `devine_la_difference` | `DevineLaDifferenceForm` | Deux prompts/réponses côte à côte, deviner le meilleur |
+| `corrige_le_prompt` | `LessonForm` (+ prop) | Prompt de départ imparfait pré-rempli, à corriger |
+| `defi_chronometre` | `LessonForm` (+ prop) | Le format standard avec un minuteur visible |
+| `choisis_la_fiable` | `ChoisisLaFiableForm` | 3 réponses IA, repérer la plus fiable |
+| `trouve_erreur` | `TrouveErreurForm` | Repérer le passage biaisé/erroné dans une réponse IA |
+| `relance_en_deux_temps` | `RelanceEnDeuxTempsForm` | 1ère réponse volontairement plate → l'utilisateur relance → évaluation Claude de la relance |
+| `question_guidee` | `QuestionGuideeForm` | Une question réflexive avant de révéler le feedback complet |
+
+Les 4 types "à choix" (`qu_aurais_tu_fait`, `devine_la_difference`,
+`choisis_la_fiable`, `trouve_erreur`) n'appellent pas l'API Claude : le
+score et le feedback sont dérivés localement du `contenu` (jsonb) de la
+leçon, via `/api/attempt`. Les types qui demandent un vrai prompt continuent
+de passer par `/api/evaluate`.
+
+Chaque leçon porte aussi un tableau `piliers` (`delegation` / `description`
+/ `discernement` / `diligence`, un ou plusieurs). À la première complétion
+d'une leçon, `/api/complete-lesson` incrémente les compteurs correspondants
+dans `competences_utilisateur` — c'est ce qui alimente la jauge à 4 axes sur
+`/progress`.
 
 ## Installer l'app (PWA)
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button, LinkButton } from "@/components/ui/Button";
 import type { Lesson } from "@/lib/types";
@@ -29,17 +29,51 @@ function ScoreDots({ score }: { score: number }) {
   );
 }
 
+function Chrono({ secondes }: { secondes: number }) {
+  const [remaining, setRemaining] = useState(secondes);
+
+  useEffect(() => {
+    if (remaining <= 0) return;
+    const id = setInterval(() => setRemaining((r) => Math.max(0, r - 1)), 1000);
+    return () => clearInterval(id);
+  }, [remaining]);
+
+  const m = Math.floor(remaining / 60);
+  const s = remaining % 60;
+  const low = remaining <= 10 && remaining > 0;
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-bold ${
+        remaining === 0
+          ? "bg-sand-200 text-sand-600"
+          : low
+            ? "bg-red-100 text-red-700"
+            : "bg-amber-100 text-amber-800"
+      }`}
+    >
+      ⏱️ {remaining === 0 ? "Temps écoulé" : `${m}:${s.toString().padStart(2, "0")}`}
+    </span>
+  );
+}
+
 export function LessonForm({
   lesson,
   alreadyCompleted,
   unlimitedAttempts = false,
+  explicationPrincipe,
+  promptInitial = "",
+  chronoSecondes,
 }: {
   lesson: Lesson;
   alreadyCompleted: boolean;
   unlimitedAttempts?: boolean;
+  explicationPrincipe?: string;
+  promptInitial?: string;
+  chronoSecondes?: number;
 }) {
   const router = useRouter();
-  const [prompt, setPrompt] = useState("");
+  const [prompt, setPrompt] = useState(promptInitial);
   const [attemptCount, setAttemptCount] = useState(0);
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [evaluating, setEvaluating] = useState(false);
@@ -144,9 +178,12 @@ export function LessonForm({
   return (
     <>
       <Card className="flex flex-col gap-3">
-        <span className="text-xs font-semibold uppercase tracking-wide text-brand-500">
-          Mise en situation
-        </span>
+        <div className="flex items-start justify-between gap-3">
+          <span className="text-xs font-semibold uppercase tracking-wide text-brand-500">
+            Mise en situation
+          </span>
+          {chronoSecondes ? <Chrono secondes={chronoSecondes} /> : null}
+        </div>
         <h1 className="text-xl font-bold text-brand-950">{lesson.titre}</h1>
         <p className="whitespace-pre-line text-brand-800">{lesson.mise_en_situation}</p>
         <div className="mt-2 rounded-lg bg-brand-50 p-4">
@@ -214,6 +251,15 @@ export function LessonForm({
               </ul>
             </div>
           )}
+
+          {explicationPrincipe ? (
+            <details className="rounded-lg border border-brand-200 bg-brand-50 p-3 open:pb-3">
+              <summary className="cursor-pointer text-sm font-semibold text-brand-800">
+                Pourquoi ça marche mieux ? Le principe général
+              </summary>
+              <p className="mt-2 text-sm text-brand-800">{explicationPrincipe}</p>
+            </details>
+          ) : null}
 
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
