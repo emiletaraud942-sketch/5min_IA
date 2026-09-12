@@ -37,6 +37,25 @@ create table public.lessons (
   -- Themed folder a lesson belongs to (e.g. 'agent_pro'). null = regular
   -- daily lesson, no folder, no quota. See migration_premium.sql.
   groupe text,
+  -- Which frontend component renders this lesson. 'standard' = the
+  -- original write-a-prompt format, unchanged. See migration_lesson_types.sql.
+  type_lecon text not null default 'standard' check (type_lecon in (
+    'standard',
+    'explication_etendue',
+    'qu_aurais_tu_fait',
+    'devine_la_difference',
+    'corrige_le_prompt',
+    'defi_chronometre',
+    'choisis_la_fiable',
+    'trouve_erreur',
+    'relance_en_deux_temps',
+    'question_guidee'
+  )),
+  -- Type-specific structured content (choices, alternate prompts, etc.).
+  -- null for 'standard' lessons, which use the columns above instead.
+  contenu jsonb,
+  -- Which of the 4 AI-fluency pillars this lesson trains (0 or more).
+  piliers text[] not null default '{}',
   created_at timestamptz not null default now(),
   unique (track, metier, ordre)
 );
@@ -65,6 +84,18 @@ create table public.attempts (
 );
 
 create index attempts_user_lesson_idx on public.attempts (user_id, lesson_id, date desc);
+
+-- One row per user: counts of completed lessons per AI-fluency pillar,
+-- incremented from `lessons.piliers` the first time each lesson is
+-- completed. Feeds the competency gauge on the progress page.
+create table public.competences_utilisateur (
+  user_id uuid primary key references public.users (id) on delete cascade,
+  delegation_count int not null default 0,
+  description_count int not null default 0,
+  discernement_count int not null default 0,
+  diligence_count int not null default 0,
+  updated_at timestamptz not null default now()
+);
 
 -- One row per (user, lesson, day) the user opened a "groupe" lesson. Used
 -- to count how many distinct special lessons were started today.
@@ -110,6 +141,7 @@ alter table public.users enable row level security;
 alter table public.lessons enable row level security;
 alter table public.user_progress enable row level security;
 alter table public.attempts enable row level security;
+alter table public.competences_utilisateur enable row level security;
 alter table public.lesson_opens enable row level security;
 alter table public.lesson_unlocks enable row level security;
 
@@ -146,6 +178,19 @@ create policy "users can read own attempts"
 
 create policy "users can insert own attempts"
   on public.attempts for insert
+  with check (auth.uid() = user_id);
+
+create policy "users can read own competences"
+  on public.competences_utilisateur for select
+  using (auth.uid() = user_id);
+
+create policy "users can insert own competences"
+  on public.competences_utilisateur for insert
+  with check (auth.uid() = user_id);
+
+create policy "users can update own competences"
+  on public.competences_utilisateur for update
+  using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
 create policy "users can read own lesson opens"

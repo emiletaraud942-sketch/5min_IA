@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { computeStreakAfterCompletionToday } from "@/lib/streak";
+import { incrementCompetences } from "@/lib/competences";
+import type { Pilier } from "@/lib/types";
 
 export async function POST(request: Request) {
   const supabase = createClient();
@@ -36,13 +38,23 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data: previousCompletions } = await supabase
-    .from("user_progress")
-    .select("date_completion")
-    .eq("user_id", user.id)
-    .eq("statut", "termine")
-    .not("date_completion", "is", null)
-    .neq("lesson_id", lessonId);
+  const [{ data: previousCompletions }, { data: existingProgress }] = await Promise.all([
+    supabase
+      .from("user_progress")
+      .select("date_completion")
+      .eq("user_id", user.id)
+      .eq("statut", "termine")
+      .not("date_completion", "is", null)
+      .neq("lesson_id", lessonId),
+    supabase
+      .from("user_progress")
+      .select("statut")
+      .eq("user_id", user.id)
+      .eq("lesson_id", lessonId)
+      .maybeSingle(),
+  ]);
+
+  const isFirstCompletion = existingProgress?.statut !== "termine";
 
   const streakCount = computeStreakAfterCompletionToday(
     (previousCompletions ?? []).map((row) => row.date_completion as string),
@@ -65,6 +77,18 @@ export async function POST(request: Request) {
       { error: "Impossible d'enregistrer la progression." },
       { status: 500 },
     );
+  }
+
+  if (isFirstCompletion) {
+    const { data: lesson } = await supabase
+      .from("lessons")
+      .select("piliers")
+      .eq("id", lessonId)
+      .single();
+
+    if (lesson?.piliers?.length) {
+      await incrementCompetences(supabase, user.id, lesson.piliers as Pilier[]);
+    }
   }
 
   return NextResponse.json({ streakCount });
