@@ -1,5 +1,15 @@
+// Streaks are day-based and the product is French-only, so days are counted
+// in Europe/Paris local time rather than UTC — otherwise a lesson finished
+// late evening in France could get counted on the wrong calendar day.
+const TIMEZONE = "Europe/Paris";
+const dateKeyFormatter = new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE });
+
 function toDateKey(iso: string) {
-  return new Date(iso).toISOString().slice(0, 10);
+  return dateKeyFormatter.format(new Date(iso));
+}
+
+function todayKey() {
+  return dateKeyFormatter.format(new Date());
 }
 
 function shiftDays(dateKey: string, delta: number) {
@@ -19,16 +29,16 @@ function countStreakEndingAt(dateKey: string, days: Set<string>) {
 }
 
 /**
- * Streak = number of consecutive calendar days (UTC) with at least one
- * completed lesson, counting a completion happening right now (today).
+ * Streak = number of consecutive calendar days (Europe/Paris) with at least
+ * one completed lesson, counting a completion happening right now (today).
  */
 export function computeStreakAfterCompletionToday(
   previousCompletionDates: string[],
 ): number {
   const days = new Set(previousCompletionDates.map(toDateKey));
-  const todayKey = new Date().toISOString().slice(0, 10);
-  days.add(todayKey);
-  return countStreakEndingAt(todayKey, days);
+  const today = todayKey();
+  days.add(today);
+  return countStreakEndingAt(today, days);
 }
 
 /**
@@ -37,12 +47,12 @@ export function computeStreakAfterCompletionToday(
  */
 export function computeCurrentStreak(completionDates: string[]): number {
   const days = new Set(completionDates.map(toDateKey));
-  const todayKey = new Date().toISOString().slice(0, 10);
+  const today = todayKey();
 
-  if (days.has(todayKey)) return countStreakEndingAt(todayKey, days);
+  if (days.has(today)) return countStreakEndingAt(today, days);
 
-  const yesterdayKey = shiftDays(todayKey, -1);
-  if (days.has(yesterdayKey)) return countStreakEndingAt(yesterdayKey, days);
+  const yesterday = shiftDays(today, -1);
+  if (days.has(yesterday)) return countStreakEndingAt(yesterday, days);
 
   return 0;
 }

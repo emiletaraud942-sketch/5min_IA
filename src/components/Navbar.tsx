@@ -31,6 +31,12 @@ export function Navbar({ loggedIn }: { loggedIn: boolean }) {
             >
               Progression
             </Link>
+            <Link
+              href="/profile"
+              className="text-sm font-medium text-brand-700 hover:text-brand-900"
+            >
+              Profil
+            </Link>
             <SignOutButton />
           </nav>
         ) : (

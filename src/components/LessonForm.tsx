@@ -81,6 +81,7 @@ export function LessonForm({
   const [validated, setValidated] = useState(false);
   const [streak, setStreak] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [practicing, setPracticing] = useState(false);
 
   async function handleEvaluate() {
     if (!prompt.trim() || evaluating) return;
@@ -142,16 +143,19 @@ export function LessonForm({
     }
   }
 
-  if (alreadyCompleted && !unlimitedAttempts && !validated) {
+  if (alreadyCompleted && !unlimitedAttempts && !validated && !practicing) {
     return (
       <Card className="text-center">
         <h1 className="mb-2 text-xl font-bold text-brand-950">
           Tu as déjà validé cette leçon ✅
         </h1>
         <p className="mb-4 text-brand-700">{lesson.titre}</p>
-        <LinkButton href="/dashboard" variant="secondary">
-          Retour à mes leçons
-        </LinkButton>
+        <div className="flex justify-center gap-3">
+          <Button onClick={() => setPracticing(true)}>Refaire cette leçon</Button>
+          <LinkButton href="/dashboard" variant="secondary">
+            Retour à mes leçons
+          </LinkButton>
+        </div>
       </Card>
     );
   }

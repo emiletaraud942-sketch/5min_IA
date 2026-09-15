@@ -5,36 +5,40 @@ import { canOpenLesson, getLessonAccess, recordLessonOpen } from "@/lib/access";
 import { Navbar } from "@/components/Navbar";
 import { LessonForm } from "@/components/LessonForm";
 import { Paywall } from "@/components/Paywall";
-import { Card } from "@/components/ui/Card";
-import { LinkButton } from "@/components/ui/Button";
+import { AlreadyCompletedGate } from "@/components/lesson-types/AlreadyCompletedGate";
 import { QuAuraisTuFaitForm } from "@/components/lesson-types/QuAuraisTuFaitForm";
 import { DevineLaDifferenceForm } from "@/components/lesson-types/DevineLaDifferenceForm";
 import { ChoisisLaFiableForm } from "@/components/lesson-types/ChoisisLaFiableForm";
 import { TrouveErreurForm } from "@/components/lesson-types/TrouveErreurForm";
 import { RelanceEnDeuxTempsForm } from "@/components/lesson-types/RelanceEnDeuxTempsForm";
 import { QuestionGuideeForm } from "@/components/lesson-types/QuestionGuideeForm";
+import { Card } from "@/components/ui/Card";
+import { LinkButton } from "@/components/ui/Button";
+import {
+  isContenuChoisisLaFiable,
+  isContenuDevineLaDifference,
+  isContenuQuAuraisTuFait,
+  isContenuQuestionGuidee,
+  isContenuRelanceEnDeuxTemps,
+  isContenuTrouveErreur,
+} from "@/lib/contenu-guards";
 import type {
-  ContenuChoisisLaFiable,
   ContenuCorrigeLePrompt,
   ContenuDefiChronometre,
-  ContenuDevineLaDifference,
   ContenuExplicationEtendue,
-  ContenuQuAuraisTuFait,
-  ContenuQuestionGuidee,
-  ContenuRelanceEnDeuxTemps,
-  ContenuTrouveErreur,
   Lesson,
 } from "@/lib/types";
 
-function AlreadyCompletedCard({ titre }: { titre: string }) {
+function ContenuInvalideCard() {
   return (
     <Card className="text-center">
-      <h1 className="mb-2 text-xl font-bold text-brand-950">
-        Tu as déjà validé cette leçon ✅
-      </h1>
-      <p className="mb-4 text-brand-700">{titre}</p>
-      <LinkButton href="/dashboard" variant="secondary">
-        Retour à mes leçons
+      <h1 className="mb-2 text-xl font-bold text-brand-950">Leçon indisponible</h1>
+      <p className="mb-4 text-brand-700">
+        Le contenu de cette leçon est mal configuré. Reviens un peu plus tard, ou
+        choisis une autre leçon.
+      </p>
+      <LinkButton href="/lessons" variant="secondary">
+        Voir mes leçons
       </LinkButton>
     </Card>
   );
@@ -141,52 +145,46 @@ export default async function LessonPage({
         );
       }
       case "qu_aurais_tu_fait":
-        if (alreadyCompleted && !profile!.is_admin)
-          return <AlreadyCompletedCard titre={lesson!.titre} />;
+        if (!isContenuQuAuraisTuFait(lesson!.contenu)) return <ContenuInvalideCard />;
         return (
-          <QuAuraisTuFaitForm lesson={lesson!} contenu={lesson!.contenu as ContenuQuAuraisTuFait} />
+          <AlreadyCompletedGate titre={lesson!.titre} skip={!alreadyCompleted || profile!.is_admin}>
+            <QuAuraisTuFaitForm lesson={lesson!} contenu={lesson!.contenu} />
+          </AlreadyCompletedGate>
         );
       case "devine_la_difference":
-        if (alreadyCompleted && !profile!.is_admin)
-          return <AlreadyCompletedCard titre={lesson!.titre} />;
+        if (!isContenuDevineLaDifference(lesson!.contenu)) return <ContenuInvalideCard />;
         return (
-          <DevineLaDifferenceForm
-            lesson={lesson!}
-            contenu={lesson!.contenu as ContenuDevineLaDifference}
-          />
+          <AlreadyCompletedGate titre={lesson!.titre} skip={!alreadyCompleted || profile!.is_admin}>
+            <DevineLaDifferenceForm lesson={lesson!} contenu={lesson!.contenu} />
+          </AlreadyCompletedGate>
         );
       case "choisis_la_fiable":
-        if (alreadyCompleted && !profile!.is_admin)
-          return <AlreadyCompletedCard titre={lesson!.titre} />;
+        if (!isContenuChoisisLaFiable(lesson!.contenu)) return <ContenuInvalideCard />;
         return (
-          <ChoisisLaFiableForm
-            lesson={lesson!}
-            contenu={lesson!.contenu as ContenuChoisisLaFiable}
-          />
+          <AlreadyCompletedGate titre={lesson!.titre} skip={!alreadyCompleted || profile!.is_admin}>
+            <ChoisisLaFiableForm lesson={lesson!} contenu={lesson!.contenu} />
+          </AlreadyCompletedGate>
         );
       case "trouve_erreur":
-        if (alreadyCompleted && !profile!.is_admin)
-          return <AlreadyCompletedCard titre={lesson!.titre} />;
+        if (!isContenuTrouveErreur(lesson!.contenu)) return <ContenuInvalideCard />;
         return (
-          <TrouveErreurForm lesson={lesson!} contenu={lesson!.contenu as ContenuTrouveErreur} />
+          <AlreadyCompletedGate titre={lesson!.titre} skip={!alreadyCompleted || profile!.is_admin}>
+            <TrouveErreurForm lesson={lesson!} contenu={lesson!.contenu} />
+          </AlreadyCompletedGate>
         );
       case "relance_en_deux_temps":
-        if (alreadyCompleted && !profile!.is_admin)
-          return <AlreadyCompletedCard titre={lesson!.titre} />;
+        if (!isContenuRelanceEnDeuxTemps(lesson!.contenu)) return <ContenuInvalideCard />;
         return (
-          <RelanceEnDeuxTempsForm
-            lesson={lesson!}
-            contenu={lesson!.contenu as ContenuRelanceEnDeuxTemps}
-          />
+          <AlreadyCompletedGate titre={lesson!.titre} skip={!alreadyCompleted || profile!.is_admin}>
+            <RelanceEnDeuxTempsForm lesson={lesson!} contenu={lesson!.contenu} />
+          </AlreadyCompletedGate>
         );
       case "question_guidee":
-        if (alreadyCompleted && !profile!.is_admin)
-          return <AlreadyCompletedCard titre={lesson!.titre} />;
+        if (!isContenuQuestionGuidee(lesson!.contenu)) return <ContenuInvalideCard />;
         return (
-          <QuestionGuideeForm
-            lesson={lesson!}
-            contenu={lesson!.contenu as ContenuQuestionGuidee}
-          />
+          <AlreadyCompletedGate titre={lesson!.titre} skip={!alreadyCompleted || profile!.is_admin}>
+            <QuestionGuideeForm lesson={lesson!} contenu={lesson!.contenu} />
+          </AlreadyCompletedGate>
         );
       case "standard":
       default:

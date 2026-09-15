@@ -31,6 +31,9 @@ export async function POST(request: Request) {
   if (!promptSoumis || !feedback) {
     return NextResponse.json({ error: "Réponse invalide." }, { status: 400 });
   }
+  if (promptSoumis.length > 2000 || feedback.length > 2000) {
+    return NextResponse.json({ error: "Réponse trop longue." }, { status: 400 });
+  }
   if (!Number.isInteger(score) || score < 1 || score > 5) {
     return NextResponse.json({ error: "Score invalide." }, { status: 400 });
   }
