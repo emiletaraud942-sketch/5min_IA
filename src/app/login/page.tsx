@@ -84,6 +84,12 @@ export default function LoginPage() {
               className="rounded-lg border border-sand-300 px-3 py-2 text-base focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             />
           </label>
+          <Link
+            href="/forgot-password"
+            className="-mt-2 self-end text-xs font-medium text-brand-600 underline underline-offset-2"
+          >
+            Mot de passe oublié ?
+          </Link>
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
           <Button type="submit" disabled={loading} className="mt-2 w-full">
             {loading ? "Connexion..." : "Se connecter"}

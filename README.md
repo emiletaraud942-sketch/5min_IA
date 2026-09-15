@@ -42,6 +42,11 @@ V1 : une leçon par jour, un prompt à écrire, un feedback de Claude, un streak
      leçons déjà en base)
    - `supabase/seed_lot6.sql` (un exemple jouable de chacun des 9 nouveaux
      types de leçon)
+   - `supabase/seed_lot7.sql` (2-3 leçons dédiées par métier auparavant sans
+     contenu spécifique : RH, Assistant/Secrétariat, Comptabilité)
+   - `supabase/seed_lot8.sql` (mini-cours "Claude 101" — 4 leçons
+     d'introduction pour les vrais débutants, affichées avant la leçon 1,
+     sur les deux parcours)
 3. Dans **Project Settings > API**, récupère `Project URL` et la clé `anon public`.
 4. Optionnel mais recommandé pour un test rapide entre 5 et 10 personnes : dans
    **Authentication > Providers > Email**, désactive « Confirm email » pour que les
@@ -150,7 +155,14 @@ Voir `supabase/schema.sql` pour le détail complet (types, contraintes, RLS).
   son prompt → évaluation Claude (note /5 + feedback) → un réessai possible →
   validation → mise à jour du streak.
 - **Toutes les leçons** (`/lessons`) : liste complète des leçons du parcours,
-  chacune cliquable indépendamment de l'ordre pour la faire ou la refaire.
+  chacune cliquable indépendamment de l'ordre. Une leçon déjà validée reste
+  accessible : elle affiche d'abord un écran "déjà validée ✅" avec un bouton
+  "Refaire cette leçon" plutôt que de bloquer — refaire une leçon ne fausse
+  jamais le streak ni la jauge de compétences (seule la toute première
+  complétion compte).
+- **Mon profil** (`/profile`) : modifier à tout moment ses réponses
+  d'onboarding (parcours, métier, niveau, objectif) — pas besoin d'être
+  admin pour ça.
 - **Dossier de leçons spéciales** : les parcours "agent" de 15 leçons (lots
   4 et 5) apparaissent regroupés à part sur `/lessons`, clairement identifiés
   comme un parcours spécial. Limités à 2 leçons gratuites par jour — au-delà,
@@ -192,6 +204,24 @@ Chaque leçon porte aussi un tableau `piliers` (`delegation` / `description`
 d'une leçon, `/api/complete-lesson` incrémente les compteurs correspondants
 dans `competences_utilisateur` — c'est ce qui alimente la jauge à 4 axes sur
 `/progress`.
+
+## Compte / sécurité
+
+- **Mot de passe oublié** : `/forgot-password` envoie un lien Supabase,
+  `/reset-password` (page ouverte depuis ce lien) permet de choisir un
+  nouveau mot de passe.
+- **Streak en heure française** : les jours sont comptés en `Europe/Paris`
+  (pas en UTC), pour qu'une leçon terminée tard le soir ne bascule pas sur
+  le mauvais jour.
+- **Pages d'erreur** : 404 (`not-found.tsx`) et erreur inattendue
+  (`error.tsx`) personnalisées plutôt que les pages par défaut de Next.
+- **Contenu des leçons validé au runtime** : `src/lib/contenu-guards.ts`
+  vérifie la forme du `contenu` (jsonb) de chaque leçon à choix avant de
+  l'afficher — une ligne mal formée en base affiche un message propre
+  plutôt que de faire planter la page.
+- Un CVE critique Next.js (RCE via l'API d'optimisation d'images, non
+  patché sur la branche 14.x) reste mitigé en désactivant cette API dans
+  `next.config.mjs`, qu'on n'utilise pas de toute façon.
 
 ## Installer l'app (PWA)
 
